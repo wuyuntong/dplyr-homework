@@ -8,7 +8,7 @@ execute:
 ---
 
 ```{r, message = FALSE, warning = FALSE}
-here::i_am("Exercise.Rproj")
+here::i_am("dplyr-homework.Rproj")
 library(dplyr)
 library(here)
 library(knitr)
