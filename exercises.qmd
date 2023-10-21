@@ -1,0 +1,132 @@
+---
+title: "Exercise"
+format: html
+editor: visual
+author: Yuntong Wu & Jiaxin Shen
+execute: 
+  keep-md: true
+---
+
+```{r, message = FALSE, warning = FALSE}
+here::i_am("Exercise.Rproj")
+library(dplyr)
+library(here)
+library(knitr)
+library(tidyr)
+library(ggplot2)
+```
+
+```{r}
+spotify <- readRDS("top-spotify-songs-from-20102019-by-year.Rds")
+dropout <- readRDS("dropout.Rds")
+```
+
+## Exercise 1
+
+### Question 1
+
+```{r}
+n_song <- spotify |>
+  distinct(title) |>
+  nrow()
+n_artist <- spotify |>
+  distinct(artist) |>
+  nrow()
+n_genre <- spotify |>
+  distinct(`top genre`) |>
+  nrow()
+```
+
+The data set contains `r n_song` songs, `r n_artist` artists and `r n_genre` genres.
+
+### Question 2
+
+```{r}
+spotify |>
+  group_by(year) |>
+  summarise("number of songs" = n()) |>
+  knitr::kable()
+```
+
+### Question 3
+
+```{r}
+artist_counts <- spotify |>
+  distinct(title, .keep_all = TRUE) |>
+  group_by(artist) |>
+  summarise(num_songs = n()) |>
+  slice_max(num_songs)
+```
+
+The most popular artist is `r artist_counts[1,1]`, who has `r artist_counts[1,2]` songs.
+
+### Question 4
+
+```{r}
+spotify |>
+  distinct(title, .keep_all = TRUE) |>
+  group_by(`top genre`) |>
+  summarise("min bpm" = min(bpm), "max bpm" = max(bpm), "mean bpm" = mean(bpm), "median tempo" = median(bpm), "number" = n()) |>
+  knitr::kable()
+```
+
+### Question 5
+
+```{r}
+median_ed <- spotify |>
+  group_by(year) |>
+  summarise(`median energy` = median(nrgy), `median dance` = median(dnce))
+median_ed
+```
+
+### Question 6
+
+```{r Evaluation of median energy and dancibility}
+median_ed |>
+  pivot_longer(-year, names_to = "variable", values_to = "value") |>
+  ggplot(aes(x = year, y = value, group = variable, color = variable)) +
+  geom_line() +
+  scale_x_continuous(breaks = 2010:2019)
+```
+
+## Exercise 2
+
+### Question 1
+
+```{r}
+m_age <- dropout |>
+  group_by(Gender, `Marital status`) |>
+  summarise(`Median age` = median(`Age at enrollment`), .groups = "drop_last")
+m_age
+```
+
+### Question 2
+
+```{r}
+m_age |>
+  pivot_wider(names_from = Gender, values_from = `Median age`) |>
+  knitr::kable()
+```
+
+### Question 3
+
+```{r}
+mean_credit <- dropout |>
+  group_by(Target) |>
+  summarise(
+    `Curricular units 1st sem (credited)` = mean(`Curricular units 1st sem (credited)`),
+    `Curricular units 1st sem (enrolled)` = mean(`Curricular units 1st sem (enrolled)`),
+    `Curricular units 1st sem (evaluations)` = mean(`Curricular units 1st sem (evaluations)`)
+  )
+
+mean_credit
+```
+
+### Question 4
+
+```{r}
+mean_credit |>
+  pivot_longer(cols = c(`Curricular units 1st sem (credited)`, `Curricular units 1st sem (enrolled)`, `Curricular units 1st sem (evaluations)`), names_to = "Units", values_to = "Score") |>
+  pivot_wider(names_from = Target, values_from = Score) |>
+  knitr::kable()
+```
