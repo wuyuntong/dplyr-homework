@@ -7,7 +7,9 @@ execute:
   keep-md: true
 ---
 
-```{r, message = FALSE, warning = FALSE}
+GitHub link: https://github.com/wuyuntong/dplyr-homework.git
+
+```{r, message = FALSE, warning = FALSE, echo=FALSE}
 here::i_am("dplyr-homework.Rproj")
 library(dplyr)
 library(here)
@@ -16,7 +18,7 @@ library(tidyr)
 library(ggplot2)
 ```
 
-```{r}
+```{r echo=FALSE}
 spotify <- readRDS("top-spotify-songs-from-20102019-by-year.Rds")
 dropout <- readRDS("dropout.Rds")
 ```
@@ -25,7 +27,7 @@ dropout <- readRDS("dropout.Rds")
 
 ### Question 1
 
-```{r}
+```{r echo=FALSE}
 n_song <- spotify |>
   distinct(title) |>
   nrow()
@@ -41,7 +43,7 @@ The data set contains `r n_song` songs, `r n_artist` artists and `r n_genre` gen
 
 ### Question 2
 
-```{r}
+```{r echo=FALSE}
 spotify |>
   group_by(year) |>
   summarise("number of songs" = n()) |>
@@ -50,7 +52,7 @@ spotify |>
 
 ### Question 3
 
-```{r}
+```{r echo=FALSE}
 artist_counts <- spotify |>
   distinct(title, .keep_all = TRUE) |>
   group_by(artist) |>
@@ -62,17 +64,17 @@ The most popular artist is `r artist_counts[1,1]`, who has `r artist_counts[1,2]
 
 ### Question 4
 
-```{r}
+```{r echo=FALSE}
 spotify |>
   distinct(title, .keep_all = TRUE) |>
   group_by(`top genre`) |>
-  summarise("min bpm" = min(bpm), "max bpm" = max(bpm), "mean bpm" = mean(bpm), "median tempo" = median(bpm), "number" = n()) |>
+  summarise("min bpm" = min(bpm), "max bpm" = max(bpm), "mean bpm" = mean(bpm), "median bmp" = median(bpm), "number" = n()) |>
   knitr::kable()
 ```
 
 ### Question 5
 
-```{r}
+```{r echo=FALSE}
 median_ed <- spotify |>
   group_by(year) |>
   summarise(`median energy` = median(nrgy), `median dance` = median(dnce))
@@ -81,7 +83,7 @@ median_ed
 
 ### Question 6
 
-```{r Evaluation of median energy and dancibility}
+```{r echo=FALSE}
 median_ed |>
   pivot_longer(-year, names_to = "variable", values_to = "value") |>
   ggplot(aes(x = year, y = value, group = variable, color = variable)) +
@@ -93,7 +95,7 @@ median_ed |>
 
 ### Question 1
 
-```{r}
+```{r echo=FALSE}
 m_age <- dropout |>
   group_by(Gender, `Marital status`) |>
   summarise(`Median age` = median(`Age at enrollment`), .groups = "drop_last")
@@ -102,15 +104,24 @@ m_age
 
 ### Question 2
 
-```{r}
+```{r echo=FALSE}
 m_age |>
   pivot_wider(names_from = Gender, values_from = `Median age`) |>
   knitr::kable()
 ```
 
 ### Question 3
+```{r echo=FALSE}
+cu <- dropout |>
+  select(matches("Curricular units"),Target) |>
+  group_by(Target) |>
+  summarise(across(where(is.numeric), mean))
+cu
+```
 
-```{r}
+### Question 4
+
+```{r echo=FALSE}
 mean_credit <- dropout |>
   group_by(Target) |>
   summarise(
@@ -119,14 +130,8 @@ mean_credit <- dropout |>
     `Curricular units 1st sem (evaluations)` = mean(`Curricular units 1st sem (evaluations)`)
   )
 
-mean_credit
-```
-
-### Question 4
-
-```{r}
 mean_credit |>
   pivot_longer(cols = c(`Curricular units 1st sem (credited)`, `Curricular units 1st sem (enrolled)`, `Curricular units 1st sem (evaluations)`), names_to = "Units", values_to = "Score") |>
   pivot_wider(names_from = Target, values_from = Score) |>
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
