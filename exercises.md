@@ -2,7 +2,7 @@
 title: "Exercise"
 format: html
 editor: visual
-author: Yuntong Wu & Jiaxin Shen
+author: Yuntong Wu
 execute: 
   keep-md: true
 ---
@@ -18,6 +18,10 @@ GitHub link: https://github.com/wuyuntong/dplyr-homework.git
 
 ::: {.cell}
 
+```{.r .cell-code}
+spotify <- readRDS("top-spotify-songs-from-20102019-by-year.Rds")
+dropout <- readRDS("dropout.Rds")
+```
 :::
 
 
@@ -28,6 +32,17 @@ GitHub link: https://github.com/wuyuntong/dplyr-homework.git
 
 ::: {.cell}
 
+```{.r .cell-code}
+n_song <- spotify |>
+  distinct(title) |>
+  nrow()
+n_artist <- spotify |>
+  distinct(artist) |>
+  nrow()
+n_genre <- spotify |>
+  distinct(`top genre`) |>
+  nrow()
+```
 :::
 
 
@@ -37,6 +52,14 @@ The data set contains 584 songs, 184 artists and 50 genres.
 
 
 ::: {.cell}
+
+```{.r .cell-code}
+spotify |>
+  group_by(year) |>
+  summarise("number of songs" = n()) |>
+  knitr::kable()
+```
+
 ::: {.cell-output-display}
 | year| number of songs|
 |----:|---------------:|
@@ -59,6 +82,15 @@ The data set contains 584 songs, 184 artists and 50 genres.
 
 ::: {.cell}
 
+```{.r .cell-code}
+artist_counts <- spotify |>
+  distinct(title, .keep_all = TRUE) |>
+  group_by(artist) |>
+  summarise(num_songs = n())
+
+count <- max(artist_counts$num_songs)
+artist <- artist_counts$artist[which(artist_counts$num_songs == count)]
+```
 :::
 
 
@@ -68,6 +100,15 @@ The most popular artist is Katy Perry, who has 17 songs.
 
 
 ::: {.cell}
+
+```{.r .cell-code}
+spotify |>
+  distinct(title, .keep_all = TRUE) |>
+  group_by(`top genre`) |>
+  summarise("min bpm" = min(bpm), "max bpm" = max(bpm), "mean bpm" = mean(bpm), "median bmp" = median(bpm), "number" = n()) |>
+  knitr::kable()
+```
+
 ::: {.cell-output-display}
 |top genre                 | min bpm| max bpm| mean bpm| median bmp| number|
 |:-------------------------|-------:|-------:|--------:|----------:|------:|
@@ -129,6 +170,15 @@ The most popular artist is Katy Perry, who has 17 songs.
 
 
 ::: {.cell}
+
+```{.r .cell-code}
+median_ed <- spotify |>
+  group_by(year) |>
+  summarise(`median energy` = median(nrgy), `median dance` = median(dnce))
+
+median_ed
+```
+
 ::: {.cell-output .cell-output-stdout}
 ```
 # A tibble: 10 × 3
@@ -153,6 +203,15 @@ The most popular artist is Katy Perry, who has 17 songs.
 
 
 ::: {.cell}
+
+```{.r .cell-code}
+median_ed |>
+  pivot_longer(-year, names_to = "variable", values_to = "value") |>
+  ggplot(aes(x = year, y = value, group = variable, color = variable)) +
+  geom_line() +
+  scale_x_continuous(breaks = 2010:2019)
+```
+
 ::: {.cell-output-display}
 ![](exercises_files/figure-html/unnamed-chunk-8-1.png){width=672}
 :::
@@ -165,6 +224,15 @@ The most popular artist is Katy Perry, who has 17 songs.
 
 
 ::: {.cell}
+
+```{.r .cell-code}
+m_age <- dropout |>
+  group_by(Gender, `Marital status`) |>
+  summarise(`Median age` = median(`Age at enrollment`), .groups = "drop_last")
+
+m_age
+```
+
 ::: {.cell-output .cell-output-stdout}
 ```
 # A tibble: 12 × 3
@@ -192,6 +260,13 @@ The most popular artist is Katy Perry, who has 17 songs.
 
 
 ::: {.cell}
+
+```{.r .cell-code}
+m_age |>
+  pivot_wider(names_from = Gender, values_from = `Median age`) |>
+  knitr::kable()
+```
+
 ::: {.cell-output-display}
 |Marital status    | Male| Female|
 |:-----------------|----:|------:|
@@ -207,10 +282,24 @@ The most popular artist is Katy Perry, who has 17 songs.
 
 ### Question 3
 
+
 ::: {.cell}
+
+```{.r .cell-code}
+mean_credit <- dropout |>
+  group_by(Target) |>
+  summarise(
+    `Curricular units 1st sem (credited)` = mean(`Curricular units 1st sem (credited)`),
+    `Curricular units 1st sem (enrolled)` = mean(`Curricular units 1st sem (enrolled)`),
+    `Curricular units 1st sem (evaluations)` = mean(`Curricular units 1st sem (evaluations)`)
+  )
+
+mean_credit
+```
+
 ::: {.cell-output .cell-output-stdout}
 ```
-# A tibble: 3 × 13
+# A tibble: 3 × 4
   Target   Curricular units 1st …¹ Curricular units 1st…² Curricular units 1st…³
   <fct>                      <dbl>                  <dbl>                  <dbl>
 1 Dropout                    0.609                   5.82                   7.75
@@ -219,10 +308,6 @@ The most popular artist is Katy Perry, who has 17 songs.
 # ℹ abbreviated names: ¹​`Curricular units 1st sem (credited)`,
 #   ²​`Curricular units 1st sem (enrolled)`,
 #   ³​`Curricular units 1st sem (evaluations)`
-# ℹ 9 more variables: `Curricular units 1st sem (approved)` <dbl>,
-#   `Curricular units 1st sem (grade)` <dbl>,
-#   `Curricular units 1st sem (without evaluations)` <dbl>,
-#   `Curricular units 2nd sem (credited)` <dbl>, …
 ```
 :::
 :::
@@ -232,11 +317,19 @@ The most popular artist is Katy Perry, who has 17 songs.
 
 
 ::: {.cell}
+
+```{.r .cell-code}
+mean_credit |>
+  pivot_longer(cols = c(`Curricular units 1st sem (credited)`, `Curricular units 1st sem (enrolled)`, `Curricular units 1st sem (evaluations)`), names_to = "Units", values_to = "Score") |>
+  pivot_wider(names_from = Target, values_from = Score) |>
+  knitr::kable()
+```
+
 ::: {.cell-output-display}
-|Units                                  | Dropout| Graduate| Enrolled|
-|:--------------------------------------|-------:|--------:|--------:|
-|Curricular units 1st sem (credited)    |    0.61|     0.85|     0.51|
-|Curricular units 1st sem (enrolled)    |    5.82|     6.67|     5.96|
-|Curricular units 1st sem (evaluations) |    7.75|     8.28|     9.34|
+|Units                                  |  Dropout|  Graduate|  Enrolled|
+|:--------------------------------------|--------:|---------:|---------:|
+|Curricular units 1st sem (credited)    | 0.609430| 0.8474423| 0.5075567|
+|Curricular units 1st sem (enrolled)    | 5.821253| 6.6695337| 5.9647355|
+|Curricular units 1st sem (evaluations) | 7.751583| 8.2765957| 9.3413098|
 :::
 :::

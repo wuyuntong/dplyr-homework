@@ -2,7 +2,7 @@
 title: "Exercise"
 format: html
 editor: visual
-author: Yuntong Wu & Jiaxin Shen
+author: Yuntong Wu
 execute: 
   keep-md: true
 ---
@@ -18,7 +18,7 @@ library(tidyr)
 library(ggplot2)
 ```
 
-```{r echo=FALSE}
+```{r}
 spotify <- readRDS("top-spotify-songs-from-20102019-by-year.Rds")
 dropout <- readRDS("dropout.Rds")
 ```
@@ -27,7 +27,7 @@ dropout <- readRDS("dropout.Rds")
 
 ### Question 1
 
-```{r echo=FALSE}
+```{r}
 n_song <- spotify |>
   distinct(title) |>
   nrow()
@@ -43,7 +43,7 @@ The data set contains `r n_song` songs, `r n_artist` artists and `r n_genre` gen
 
 ### Question 2
 
-```{r echo=FALSE}
+```{r}
 spotify |>
   group_by(year) |>
   summarise("number of songs" = n()) |>
@@ -52,19 +52,21 @@ spotify |>
 
 ### Question 3
 
-```{r echo=FALSE}
+```{r}
 artist_counts <- spotify |>
   distinct(title, .keep_all = TRUE) |>
   group_by(artist) |>
-  summarise(num_songs = n()) |>
-  slice_max(num_songs)
+  summarise(num_songs = n())
+
+count <- max(artist_counts$num_songs)
+artist <- artist_counts$artist[which(artist_counts$num_songs == count)]
 ```
 
-The most popular artist is `r artist_counts[1,1]`, who has `r artist_counts[1,2]` songs.
+The most popular artist is `r artist`, who has `r count` songs.
 
 ### Question 4
 
-```{r echo=FALSE}
+```{r}
 spotify |>
   distinct(title, .keep_all = TRUE) |>
   group_by(`top genre`) |>
@@ -74,16 +76,17 @@ spotify |>
 
 ### Question 5
 
-```{r echo=FALSE}
+```{r}
 median_ed <- spotify |>
   group_by(year) |>
   summarise(`median energy` = median(nrgy), `median dance` = median(dnce))
+
 median_ed
 ```
 
 ### Question 6
 
-```{r echo=FALSE}
+```{r}
 median_ed |>
   pivot_longer(-year, names_to = "variable", values_to = "value") |>
   ggplot(aes(x = year, y = value, group = variable, color = variable)) +
@@ -95,33 +98,25 @@ median_ed |>
 
 ### Question 1
 
-```{r echo=FALSE}
+```{r}
 m_age <- dropout |>
   group_by(Gender, `Marital status`) |>
   summarise(`Median age` = median(`Age at enrollment`), .groups = "drop_last")
+
 m_age
 ```
 
 ### Question 2
 
-```{r echo=FALSE}
+```{r}
 m_age |>
   pivot_wider(names_from = Gender, values_from = `Median age`) |>
   knitr::kable()
 ```
 
 ### Question 3
-```{r echo=FALSE}
-cu <- dropout |>
-  select(matches("Curricular units"),Target) |>
-  group_by(Target) |>
-  summarise(across(where(is.numeric), mean))
-cu
-```
 
-### Question 4
-
-```{r echo=FALSE}
+```{r}
 mean_credit <- dropout |>
   group_by(Target) |>
   summarise(
@@ -130,8 +125,14 @@ mean_credit <- dropout |>
     `Curricular units 1st sem (evaluations)` = mean(`Curricular units 1st sem (evaluations)`)
   )
 
+mean_credit
+```
+
+### Question 4
+
+```{r}
 mean_credit |>
   pivot_longer(cols = c(`Curricular units 1st sem (credited)`, `Curricular units 1st sem (enrolled)`, `Curricular units 1st sem (evaluations)`), names_to = "Units", values_to = "Score") |>
   pivot_wider(names_from = Target, values_from = Score) |>
-  knitr::kable(digits = 2)
+  knitr::kable()
 ```
